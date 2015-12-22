@@ -75,7 +75,7 @@ function mercury_init() result(ret)
   ngflag=0
   ndump=500
   nfun=100
-  rmax=100
+  rmax=10000
   rcen=5.d-3
   jcen=(/0.,0.,0./)
   cefac=3.
@@ -131,7 +131,6 @@ function amuse_set_user_defined_force(ax,ay,az,n) result(ret)
         acc_usr(1,j) = ax(j)
         acc_usr(2,j) = ay(j)
         acc_usr(3,j) = az(j)
-!        print*, 'usr_f:',j,ax(j),ay(j),az(j)
       end do
       ret = 0
 end function

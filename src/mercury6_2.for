@@ -28,11 +28,6 @@ c Input/Output
 c
 c Local
       integer j
-      real*8 prev_time
-      logical is_printed
-      data prev_time /0/
-      data is_printed /.false./
-      save is_printed, prev_time
 c
 c------------------------------------------------------------------------------
 c
@@ -40,21 +35,12 @@ c
       real*8 :: acc_usr(3,NMAX)
       common /user/acc_usr
 
-      if (time .gt. prev_time) then
-c          print*, 'mfo_user time updated,', time, prev_time
-          prev_time = time
-          is_printed = .false.
-      else
-          is_printed = .true.
-      end if
 
       do j = 2, nbod
         a(1,j) = acc_usr(1,j)
         a(2,j) = acc_usr(2,j)
         a(3,j) = acc_usr(3,j)
-        if (.not. is_printed) then
-c            print*, j, acc_usr(1,j),acc_usr(2,j),acc_usr(3,j)
-        end if
+        print*, j, acc_usr(1,j),acc_usr(2,j),acc_usr(3,j)
       end do
 c
 c------------------------------------------------------------------------------
