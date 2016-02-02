@@ -641,6 +641,31 @@ class MercuryInterface(CodeInterface, CommonCodeInterface, CodeWithDataDirectori
         function.must_handle_array = True
         return function
 
+    @legacy_function
+    def set_perturbers():
+        """
+        Set the user-defined accelerations acting upon mercury objects.
+        """
+        function = LegacyFunctionSpecification()
+        for x in ['m_p']:
+            function.addParameter(
+                x,
+                dtype='float64',
+                direction=function.IN,
+                unit=units.MSun
+            )
+        for x in ['x_p','y_p','z_p']:
+            function.addParameter(
+                x,
+                dtype='float64',
+                direction=function.IN,
+                unit=units.AU
+            )
+        function.addParameter('n', dtype='i', direction=function.LENGTH)
+        function.result_type = 'int32'
+        function.must_handle_array = True
+        return function
+
 class MercuryDoc(object):
 
     def __get__(self, instance, owner):

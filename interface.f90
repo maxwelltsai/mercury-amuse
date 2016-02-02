@@ -500,4 +500,13 @@ function set_user_defined_force(ax,ay,az,n) result(ret)
       ret = amuse_set_user_defined_force(ax,ay,az,n)
 end function
 
+! set perturbers (Maxwell)
+function set_perturbers(m_p, x_p, y_p, z_p, n) result(ret)
+      use amuse_mercuryMod
+      implicit none
+      integer :: n, ret
+      real*8, intent(in) :: x_p(n), y_p(n), z_p(n), m_p(n)
+      ret = amuse_set_perturbers(m_p, x_p, y_p, z_p, n)
+end function
+
 end module

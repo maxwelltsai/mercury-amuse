@@ -24,7 +24,7 @@ module amuse_mercuryMod
     amuse_get_potential_at_point, &
     set_algor,get_algor, &
     get_outputfiles,set_outputfiles, &
-    amuse_set_user_defined_force
+    amuse_set_user_defined_force, amuse_set_perturbers
 
   include 'mercury.inc'
 
@@ -56,7 +56,10 @@ module amuse_mercuryMod
 
 ! User defined force, added by Maxwell
   real*8 :: acc_usr(3,NMAX)
-  common /user/acc_usr
+  real*8 :: m_pert(NMAX)
+  real*8 :: x_pert(3,NMAX)
+  integer :: n_pert ! user-defined force turned off if n_pert>0!!!
+  common /user/acc_usr, m_pert, x_pert, n_pert
 
 
  contains
@@ -110,10 +113,14 @@ function mercury_init() result(ret)
 
 ! initialize user-defined force (Maxwell)
   do j = 1, NMAX
-    print*, 'init user defined force', j
     acc_usr(1,j) = 0.e0
     acc_usr(2,j) = 0.e0
     acc_usr(3,j) = 0.e0
+    m_pert(j) = 0.e0
+    x_pert(1,j) = 0.e0
+    x_pert(2,j) = 0.e0
+    x_pert(3,j) = 0.e0
+    n_pert = 0
   end do
 
   ret=0
@@ -132,6 +139,22 @@ function amuse_set_user_defined_force(ax,ay,az,n) result(ret)
         acc_usr(2,j) = ay(j)
         acc_usr(3,j) = az(j)
       end do
+      ret = 0
+end function
+
+! set perturbers data (Maxwell)
+! WARNING: if n>0, the user defined force will be ignored!
+function amuse_set_perturbers(m_p, x_p, y_p, z_p, n) result(ret)
+      implicit none
+      integer :: n, ret, j
+      real*8, intent(in) :: x_p(n), y_p(n), z_p(n), m_p(n)
+      do j = 1, n
+        x_pert(1,j) = x_p(j)
+        x_pert(2,j) = y_p(j)
+        x_pert(3,j) = z_p(j)
+        m_pert(j) = m_p(j)
+      end do
+      n_pert = n
       ret = 0
 end function
 
@@ -842,7 +865,7 @@ end function
 !
 !  MAIN  LOOP  STARTS  HERE
 !
-      write(6,*)"just check if stuck enter loop"
+      !write(6,*)"just check if stuck enter loop"
  100  continue
 
 ! timeout stopping condition
@@ -890,7 +913,7 @@ end function
 ! If integration has finished, convert to heliocentric coords and return
       if (abs(tstop-time).le.hby2.and.opflag.ge.0) then
         call bcoord (time,jcen,nbod,nbig,h0,m,x,v,xh,vh,ngf,ngflag,opt)
-        write(6,*)"leaving subroutine"
+        !write(6,*)"leaving subroutine"
         return
       end if
 !
@@ -1045,10 +1068,10 @@ end function
 ! Check for ejections
         itmp = 2
         if (algor.eq.11.or.algor.eq.12) itmp = 3
-        write(6,*) "3.5"
+        !write(6,*) "3.5"
 !        call mxx_ejec (time,tstart,rmax,en,am,jcen,itmp,nbod,nbig,m,xh, &
 !         vh,s,stat,id,opt,ejflag,outfile(3),mem,lmem)
-        write(6,*)"4"
+        !write(6,*)"4"
 !
 ! Remove ejected objects, reset flags, calculate new Hill and physical radii
         if (ejflag.ne.0) then
@@ -1078,7 +1101,7 @@ end function
 
 
 101   continue
-      write(6,*)"just check if stuck exit loop"
+      !write(6,*)"just check if stuck exit loop"
       end subroutine
 
 

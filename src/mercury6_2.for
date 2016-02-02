@@ -27,21 +27,64 @@ c Input/Output
       real*8 time,jcen(3),m(nbod),x(3,nbod),v(3,nbod),a(3,nbod)
 c
 c Local
-      integer j
+      integer j, k
 c
 c------------------------------------------------------------------------------
 c
       ! User defined force, added by Maxwell
       real*8 :: acc_usr(3,NMAX)
-      common /user/acc_usr
-
-
-      do j = 2, nbod
-        a(1,j) = acc_usr(1,j)
-        a(2,j) = acc_usr(2,j)
-        a(3,j) = acc_usr(3,j)
-        print*, j, acc_usr(1,j),acc_usr(2,j),acc_usr(3,j)
-      end do
+      real*8 :: m_pert(NMAX)
+      real*8 :: x_pert(3,NMAX)
+      real*8 :: xp, yp, zp, dx, dy, dz, sp2, sp_1, sp_3
+      real*8 :: ppl2, ppl_1, ppl_3
+      integer :: n_pert ! user-defined force turned off if n_pert>0!!!
+      common /user/acc_usr, m_pert, x_pert, n_pert
+      if (n_pert.eq.0) then
+        do j = 2, nbod
+          a(1,j) = acc_usr(1,j)
+          a(2,j) = acc_usr(2,j)
+          a(3,j) = acc_usr(3,j)
+        end do
+      else
+          do j = 2, nbod
+            a(1,j) = 0.0
+            a(2,j) = 0.0
+            a(3,j) = 0.0
+            do k = 1, n_pert
+                xp = 0 - x_pert(1,k) ! the sun at the center
+                yp = 0 - x_pert(2,k)
+                zp = 0 - x_pert(3,k)
+                sp2 = xp * xp + yp * yp + zp * zp
+                sp_1 = 1.0 / sqrt(sp2)
+                sp_3 = sp_1 * sp_1 * sp_1
+                dx = x(1,j) - xp
+                dy = x(2,j) - yp
+                dz = x(3,j) - zp
+                ppl2 = dx * dx + dy * dy + dz * dz
+                !print*, dx, dy, dz, x(1,j)
+                !print*, sp2, 'ppl2', ppl2, 'k=', k
+                ppl_1 = 1.0 / sqrt(ppl2)
+                ppl_3 = ppl_1 * ppl_1 * ppl_1
+                !a(1,j) = a(1,j) + K2*K2*m_pert(k)*(dx*ppl_3-xp*sp_3)
+                !a(2,j) = a(2,j) + K2*K2*m_pert(k)*(dy*ppl_3-yp*sp_3)
+                !a(3,j) = a(3,j) + K2*K2*m_pert(k)*(dz*ppl_3-zp*sp_3)
+                a(1,j) = a(1,j) + K2*m_pert(k)*(dx*ppl_3-xp*sp_3)
+                a(2,j) = a(2,j) + K2*m_pert(k)*(dy*ppl_3-yp*sp_3)
+                a(3,j) = a(3,j) + K2*m_pert(k)*(dz*ppl_3-zp*sp_3)
+                !a(1,j) = - K2*K2*m_pert(k)*(1)
+                !a(2,j) = - K2*K2*m_pert(k)*(1)
+                !a(3,j) = - K2*K2*m_pert(k)*(1)
+                !print*,'mfo_user',sqrt(a(1,j)**2+a(2,j)**2+a(3,j)**2)
+                !print*,'m_pert', m_pert(k), sqrt(sp2)
+                !print*,m(1),m(2)
+                !print*, 'cal1',K2*K2*m_pert(k)*xp*sp_3
+                !print*, K2*k2*m_pert(k)*dx*ppl_3
+                !print*, m_pert(k)*dx*ppl_3, m_pert(k)*xp*sp_3
+                !print*,'cal2',a(1,j), m_pert(k)*(xp*sp_3-dx*ppl_3)
+                !print*,'cal2', m_pert(k)*(xp*sp_3-dx*ppl_3)
+            end do
+          end do
+      end if
 c
 c------------------------------------------------------------------------------
 c
@@ -3331,8 +3374,13 @@ c Advance interaction Hamiltonian for H/2
       call mfo_hy (jcen,nbod,nbig,m,x,rcrit,a,stat)
       if (opt(8).eq.1) call mfo_user (time,jcen,nbod,nbig,m,x,v,ausr)
       if (ngflag.eq.1.or.ngflag.eq.3) call mfo_ngf (nbod,x,v,angf,ngf)
+
 c
       do j = 2, nbod
+         !print*,sqrt(ausr(1,j)**2+ausr(2,j)**2+ausr(3,j)**2) /
+         !&         sqrt(a(1,j)**2+a(2,j)**2+a(3,j)**2)  
+        !print*,ausr(1,j)/a(1,j),ausr(2,j)/a(2,j),ausr(3,j)/a(3,j)
+        !print*,sqrt(a(1,j)**2+a(2,j)**2+a(3,j)**2)
         v(1,j) = v(1,j)  +  hby2 * (angf(1,j) + ausr(1,j) + a(1,j))
         v(2,j) = v(2,j)  +  hby2 * (angf(2,j) + ausr(2,j) + a(2,j))
         v(3,j) = v(3,j)  +  hby2 * (angf(3,j) + ausr(3,j) + a(3,j))
@@ -4066,6 +4114,7 @@ c Include user-defined accelerations if required
       if (opt(8).eq.1) then
         call mfo_user (time,jcen,nbod,nbig,m,x,v,acor)
         do j = 2, nbod
+          !print*, acor(1,j)/a(1,j), acor(2,j)/a(2,j), acor(3,j)/a(3,j)
           a(1,j) = a(1,j) + acor(1,j)
           a(2,j) = a(2,j) + acor(2,j)
           a(3,j) = a(3,j) + acor(3,j)
@@ -4233,6 +4282,7 @@ c
           a(2,i) = a(2,i)  +  facj * dy
           a(3,i) = a(3,i)  +  facj * dz
         end do
+        !print*, 'drct_acc',sqrt(a(1,i)**2+a(2,i)**2+a(3,i)**2)
       end do
 c
 c------------------------------------------------------------------------------
