@@ -1332,9 +1332,9 @@ class Mercury(MercuryWayWard):
         orbiters=(self.particles-self.central_particle).copy()
 
         maxmass=orbiters.mass.amax()
-        if (maxmass/self.central_particle.mass) > 0.1:
-            print "orbiters too massive"
-            return -12
+        #if (maxmass/self.central_particle.mass) > 0.1:
+            # print "orbiters too massive"
+        #    return -12
 
         orbiters.position=orbiters.position-self.central_particle.position
         orbiters.velocity=orbiters.velocity-self.central_particle.velocity
@@ -1385,9 +1385,9 @@ class Mercury(MercuryWayWard):
         orbiters=(self.particles-self.central_particle).copy()
 
         maxmass=orbiters.mass.amax()
-        if (maxmass/self.central_particle.mass) > 0.1:
-          print "orbiters too massive"
-          return -12
+        #if (maxmass/self.central_particle.mass) > 0.1:
+        #  print "orbiters too massive"
+        #  return -12
 
         orbiters.position=orbiters.position-self.central_particle.position
         orbiters.velocity=orbiters.velocity-self.central_particle.velocity

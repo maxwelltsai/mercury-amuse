@@ -78,7 +78,7 @@ function mercury_init() result(ret)
   ngflag=0
   ndump=500
   nfun=100
-  rmax=10000
+  rmax=1000000
   rcen=5.d-3
   jcen=(/0.,0.,0./)
   cefac=3.

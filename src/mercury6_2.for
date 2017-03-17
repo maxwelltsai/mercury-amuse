@@ -51,15 +51,15 @@ c
             a(2,j) = 0.0
             a(3,j) = 0.0
             do k = 1, n_pert
-                xp = 0 - x_pert(1,k) ! the sun at the center
-                yp = 0 - x_pert(2,k)
-                zp = 0 - x_pert(3,k)
+                xp = x(1,1) - x_pert(1,k) ! the sun at the center
+                yp = x(2,1) - x_pert(2,k)
+                zp = x(3,1) - x_pert(3,k)
                 sp2 = xp * xp + yp * yp + zp * zp
                 sp_1 = 1.0 / sqrt(sp2)
                 sp_3 = sp_1 * sp_1 * sp_1
-                dx = x(1,j) - xp
-                dy = x(2,j) - yp
-                dz = x(3,j) - zp
+                dx = x(1,j) - x_pert(1,k)
+                dy = x(2,j) - x_pert(2,k)
+                dz = x(3,j) - x_pert(3,k)
                 ppl2 = dx * dx + dy * dy + dz * dz
                 !print*, dx, dy, dz, x(1,j)
                 !print*, sp2, 'ppl2', ppl2, 'k=', k
