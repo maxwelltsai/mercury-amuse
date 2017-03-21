@@ -56,10 +56,11 @@ module amuse_mercuryMod
 
 ! User defined force, added by Maxwell
   real*8 :: acc_usr(3,NMAX)
-  real*8 :: m_pert(NMAX)
-  real*8 :: x_pert(3,NMAX)
+  real*8 :: m_pert(NMAX), t_last_pert
+  real*8 :: x_pert(3,NMAX), v_pert(3, NMAX)
+  real*8 :: a_pert(3, NMAX), j_pert(3, NMAX)
   integer :: n_pert ! user-defined force turned off if n_pert>0!!!
-  common /user/acc_usr, m_pert, x_pert, n_pert
+  common /user/acc_usr, t_last_pert, m_pert, x_pert, v_pert, a_pert, j_pert, n_pert
 
 
  contains
@@ -120,6 +121,15 @@ function mercury_init() result(ret)
     x_pert(1,j) = 0.e0
     x_pert(2,j) = 0.e0
     x_pert(3,j) = 0.e0
+    v_pert(1,j) = 0.e0
+    v_pert(2,j) = 0.e0
+    v_pert(3,j) = 0.e0
+    a_pert(1,j) = 0.e0
+    a_pert(2,j) = 0.e0
+    a_pert(3,j) = 0.e0
+    j_pert(1,j) = 0.e0
+    j_pert(2,j) = 0.e0
+    j_pert(3,j) = 0.e0
     n_pert = 0
   end do
 
@@ -144,17 +154,30 @@ end function
 
 ! set perturbers data (Maxwell)
 ! WARNING: if n>0, the user defined force will be ignored!
-function amuse_set_perturbers(m_p, x_p, y_p, z_p, n) result(ret)
+function amuse_set_perturbers(m_p, x_p, y_p, z_p, vx_p, vy_p, vz_p, ax_p, ay_p, az_p, jx_p, jy_p, jz_p, n) result(ret)
       implicit none
       integer :: n, ret, j
       real*8, intent(in) :: x_p(n), y_p(n), z_p(n), m_p(n)
+      real*8, intent(in) :: vx_p(n), vy_p(n), vz_p(n)
+      real*8, intent(in) :: ax_p(n), ay_p(n), az_p(n)
+      real*8, intent(in) :: jx_p(n), jy_p(n), jz_p(n)
       do j = 1, n
         x_pert(1,j) = x_p(j)
         x_pert(2,j) = y_p(j)
         x_pert(3,j) = z_p(j)
+        v_pert(1,j) = vx_p(j)
+        v_pert(2,j) = vy_p(j)
+        v_pert(3,j) = vz_p(j)
+        a_pert(1,j) = ax_p(j)
+        a_pert(2,j) = ay_p(j)
+        a_pert(3,j) = az_p(j)
+        j_pert(1,j) = jx_p(j)
+        j_pert(2,j) = jy_p(j)
+        j_pert(3,j) = jz_p(j)
         m_pert(j) = m_p(j)
       end do
       n_pert = n
+      t_last_pert = time  ! time is a global variable in mercury
       ret = 0
 end function
 

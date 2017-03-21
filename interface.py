@@ -661,6 +661,27 @@ class MercuryInterface(CodeInterface, CommonCodeInterface, CodeWithDataDirectori
                 direction=function.IN,
                 unit=units.AU
             )
+        for x in ['vx_p','vy_p','vz_p']:
+            function.addParameter(
+                x,
+                dtype='float64',
+                direction=function.IN,
+                unit=units.AUd
+            )
+        for x in ['ax_p','ay_p','az_p']:
+            function.addParameter(
+                x,
+                dtype='float64',
+                direction=function.IN,
+                unit=units.AUd/units.day
+            )
+        for x in ['jx_p','jy_p','jz_p']:
+            function.addParameter(
+                x,
+                dtype='float64',
+                direction=function.IN,
+                unit=units.AUd/units.day/units.day
+            )
         function.addParameter('n', dtype='i', direction=function.LENGTH)
         function.result_type = 'int32'
         function.must_handle_array = True

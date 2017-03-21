@@ -34,11 +34,14 @@ c
       ! User defined force, added by Maxwell
       real*8 :: acc_usr(3,NMAX)
       real*8 :: m_pert(NMAX)
-      real*8 :: x_pert(3,NMAX)
+      real*8 :: x_pert(3,NMAX), v_pert(3, NMAX)
+      real*8 :: a_pert(3,NMAX), j_pert(3, NMAX)
+      real*8 :: xp_interp(3, NMAX), dt, t_last_pert
       real*8 :: xp, yp, zp, dx, dy, dz, sp2, sp_1, sp_3
       real*8 :: ppl2, ppl_1, ppl_3
       integer :: n_pert ! user-defined force turned off if n_pert>0!!!
-      common /user/acc_usr, m_pert, x_pert, n_pert
+      common /user/acc_usr, t_last_pert, m_pert,x_pert,v_pert, 
+     &             a_pert,j_pert,n_pert
       if (n_pert.eq.0) then
         do j = 2, nbod
           a(1,j) = acc_usr(1,j)
@@ -46,42 +49,39 @@ c
           a(3,j) = acc_usr(3,j)
         end do
       else
+          ! Initialization
           do j = 2, nbod
             a(1,j) = 0.0
             a(2,j) = 0.0
             a(3,j) = 0.0
-            do k = 1, n_pert
-                xp = x(1,1) - x_pert(1,k) ! the sun at the center
-                yp = x(2,1) - x_pert(2,k)
-                zp = x(3,1) - x_pert(3,k)
-                sp2 = xp * xp + yp * yp + zp * zp
-                sp_1 = 1.0 / sqrt(sp2)
-                sp_3 = sp_1 * sp_1 * sp_1
-                dx = x(1,j) - x_pert(1,k)
-                dy = x(2,j) - x_pert(2,k)
-                dz = x(3,j) - x_pert(3,k)
+          end do
+          ! Predict the accurate position of the perturber
+          dt = time - t_last_pert
+          do k = 1, n_pert
+            xp_interp(1,k) = x_pert(1,k) + v_pert(1,k)*dt + 
+     &         a_pert(1,k)*dt*dt/2.0 + j_pert(1,k)*dt*dt*dt/6.0 
+            xp_interp(2,k) = x_pert(2,k) + v_pert(2,k)*dt + 
+     &         a_pert(2,k)*dt*dt/2.0 + j_pert(2,k)*dt*dt*dt/6.0 
+            xp_interp(3,k) = x_pert(3,k) + v_pert(3,k)*dt + 
+     &         a_pert(3,k)*dt*dt/2.0 + j_pert(3,k)*dt*dt*dt/6.0 
+          end do
+          do k = 1, n_pert
+            xp = x(1,1) - xp_interp(1,k) ! the sun at the center
+            yp = x(2,1) - xp_interp(2,k)
+            zp = x(3,1) - xp_interp(3,k)
+            sp2 = xp * xp + yp * yp + zp * zp
+            sp_1 = 1.0 / sqrt(sp2)
+            sp_3 = sp_1 * sp_1 * sp_1
+            do j = 2, nbod
+                dx = x(1,j) - xp_interp(1,k)
+                dy = x(2,j) - xp_interp(2,k)
+                dz = x(3,j) - xp_interp(3,k)
                 ppl2 = dx * dx + dy * dy + dz * dz
-                !print*, dx, dy, dz, x(1,j)
-                !print*, sp2, 'ppl2', ppl2, 'k=', k
                 ppl_1 = 1.0 / sqrt(ppl2)
                 ppl_3 = ppl_1 * ppl_1 * ppl_1
-                !a(1,j) = a(1,j) + K2*K2*m_pert(k)*(dx*ppl_3-xp*sp_3)
-                !a(2,j) = a(2,j) + K2*K2*m_pert(k)*(dy*ppl_3-yp*sp_3)
-                !a(3,j) = a(3,j) + K2*K2*m_pert(k)*(dz*ppl_3-zp*sp_3)
                 a(1,j) = a(1,j) + K2*m_pert(k)*(dx*ppl_3-xp*sp_3)
                 a(2,j) = a(2,j) + K2*m_pert(k)*(dy*ppl_3-yp*sp_3)
                 a(3,j) = a(3,j) + K2*m_pert(k)*(dz*ppl_3-zp*sp_3)
-                !a(1,j) = - K2*K2*m_pert(k)*(1)
-                !a(2,j) = - K2*K2*m_pert(k)*(1)
-                !a(3,j) = - K2*K2*m_pert(k)*(1)
-                !print*,'mfo_user',sqrt(a(1,j)**2+a(2,j)**2+a(3,j)**2)
-                !print*,'m_pert', m_pert(k), sqrt(sp2)
-                !print*,m(1),m(2)
-                !print*, 'cal1',K2*K2*m_pert(k)*xp*sp_3
-                !print*, K2*k2*m_pert(k)*dx*ppl_3
-                !print*, m_pert(k)*dx*ppl_3, m_pert(k)*xp*sp_3
-                !print*,'cal2',a(1,j), m_pert(k)*(xp*sp_3-dx*ppl_3)
-                !print*,'cal2', m_pert(k)*(xp*sp_3-dx*ppl_3)
             end do
           end do
       end if
